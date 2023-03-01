@@ -1,0 +1,95 @@
+/****** Script for SelectTopNRows command from SSMS  ******/
+SELECT *
+From [Nashville Housing Data for Data Cleaningcsv]
+
+------Standardize Date Format-------
+
+Select SaleDate, Convert (Date, SaleDate)
+From [Nashville Housing Data for Data Cleaningcsv]
+
+Update [Nashville Housing Data for Data Cleaningcsv]
+Set SaleDate = Convert (Date, SaleDate)
+
+Alter Table [Nashville Housing Data for Data Cleaningcsv]
+Add SaleDateCoverted Date;
+
+--------Property Address, Address Data-----
+Select *
+From [Nashville Housing Data for Data Cleaningcsv]
+Where PropertyAddress is null
+Order by ParcelID
+
+-------Breaking Out Address into Ind. Columns (address, city, state)-----
+
+Select PropertyAddress
+From [Portfolio Projects].dbo.[Nashville Housing Data for Data Cleaningcsv]
+Where PropertyAddress is null
+Order by ParcelID
+
+Select
+SUBSTRING(PropertyAddress, 1, Charindex (',', PropertyAddress) -1 ) as Address,
+SUBSTRING(PropertyAddress, Charindex (',', PropertyAddress) +1, LEN(PropertyAddress)) as Address
+
+From [Portfolio Projects].dbo.[Nashville Housing Data for Data Cleaningcsv]
+
+Alter Table [Portfolio Projects].dbo.[Nashville Housing Data for Data Cleaningcsv]
+Add PropertySplitAddress Nvarchar(255);
+
+Update [Portfolio Projects].dbo.[Nashville Housing Data for Data Cleaningcsv]
+Set PropertySplitAddress = SUBSTRING(PropertyAddress, 1, Charindex(',', PropertyAddress) -1)
+
+Alter Table [Portfolio Projects].dbo.[Nashville Housing Data for Data Cleaningcsv]
+Add PropertySplitCity Nvarchar(255);
+
+Update [Portfolio Projects].dbo.[Nashville Housing Data for Data Cleaningcsv]
+Set PropertySplitCity = SUBSTRING(PropertyAddress, Charindex(',', PropertyAddress) +1, LEN(PropertyAddress))
+
+SELECT *
+From [Portfolio Projects].dbo.[Nashville Housing Data for Data Cleaningcsv]
+
+Select OwnerAddress
+From [Portfolio Projects].dbo.[Nashville Housing Data for Data Cleaningcsv]
+
+Select
+PARSENAME(Replace(OwnerAddress,',','.'), 3),
+PARSENAME(Replace(OwnerAddress,',','.'), 2),
+PARSENAME(Replace(OwnerAddress,',','.'), 1)
+From [Portfolio Projects].dbo.[Nashville Housing Data for Data Cleaningcsv]
+
+
+---------- Change Y and N to Yes and No --------
+
+Select Distinct(SoldAsVacant), Count(SoldAsVacant)
+
+From [Portfolio Projects].dbo.[Nashville Housing Data for Data Cleaningcsv]
+Group by SoldAsVacant
+Order by 2
+
+------ Remove Duplicates ------
+With RowNumCTE As(
+Select *,
+Row_Number() Over (
+Partition By ParcelID, PropertyAddress, SalePrice, SaleDate, LegalReference
+Order by UniqueID) row_num
+
+
+From [Portfolio Projects].dbo.[Nashville Housing Data for Data Cleaningcsv]
+---Order by ParcelID
+)
+Select *
+From RowNumCTE
+Where row_num > 1
+Order by PropertyAddress
+
+---- Delete Unused Columns ----
+
+
+Select *
+From [Portfolio Projects].dbo.[Nashville Housing Data for Data Cleaningcsv]
+
+Alter Table [Portfolio Projects].dbo.[Nashville Housing Data for Data Cleaningcsv]
+Drop Column OwnerAddress, TaxDistrict, PropertyAddress
+
+
+Alter Table [Portfolio Projects].dbo.[Nashville Housing Data for Data Cleaningcsv]
+Drop Column SaleDate, Acreage
