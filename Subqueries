@@ -1,1 +1,13 @@
+#What is the average number of orders per customer per country?
 
+SELECT shipcountry, AVG(num_orders) FROM
+(SELECT customerid, shipcountry COUNT(*) AS num_orders
+FROM orders
+GROUP BY 1,2) sub
+GROUP BY 1
+
+Subquery inside of a 'where' clause
+
+SELECT *
+FROM orders
+WHERE employeeid IN (SELECT employeeid FROM employees WHERE firstname LIKE LOWER ('%a%'))
