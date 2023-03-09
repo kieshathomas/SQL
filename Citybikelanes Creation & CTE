@@ -67,3 +67,15 @@ INSERT INTO BIT_DB.CityBikeLanes values(57,2016, 2021,"Addison",4,3.6,"yes");
 INSERT INTO BIT_DB.CityBikeLanes values(58,2011, 2021, "Beaver", 3.5, 2.5, "no");
 INSERT INTO BIT_DB.CityBikeLanes values(59,2008, 2021,"Kensington",4,4.9,"yes");
 INSERT INTO BIT_DB.CityBikeLanes values(60,2002, 2021,"Mouse",4.5,4.3,"no");
+
+
+WITH safety_average_cte AS (
+SELECT street, AVG(safetyrating) as 'rating'
+FROM citybikelanes
+GROUP BY street)
+SELECT 
+street,
+rating,
+'safe lane' as 'label'
+FROM safety_average_cte
+WHERE rating >=4
