@@ -48,3 +48,5 @@ WHERE invoicedate like '2009%'
 SELECT sum(total)
 FROM invoices
 WHERE invoicedate like '2009%'
+
+#Which sales agent made the most dollars in sales in 2009?
